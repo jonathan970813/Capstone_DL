@@ -27,7 +27,7 @@ def json_to_csv(anno_dir_path, image_dir_path, class_ids, output_filename, EXIST
             for image_data in annotation_data:
                 full_image_name = os.path.join(image_dir_path, image_data['External ID']).replace(' ', '')
                 if os.path.isfile(full_image_name) == False:
-                    print(full_image_name, "doesn't exist")
+                    print('Warning : ', full_image_name, "doesn't exist")
                     # DB Error Table 처리해도 될듯
 
                 object_list = image_data['Label']['objects']
@@ -47,6 +47,6 @@ def json_to_csv(anno_dir_path, image_dir_path, class_ids, output_filename, EXIST
                     bbox_str_list = bbox_str_list + bbox_str + ' '
                 train_csv_file.write(full_image_name + bbox_str_list + '\n')
     print('Finished converting :', output_filename)
-    
+
 if __name__ == "__main__":
     json_to_csv(ANNO_PATH, IMAGE_PATH, CLASS_IDS, os.path.join(ANNO_PATH, 'capstone.csv'))
