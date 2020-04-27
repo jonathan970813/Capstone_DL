@@ -12,31 +12,35 @@ json_annotation_list = [annotation for annotation in annotation_list if annotati
 def json_to_csv(anno_dir_path, image_dir_path, class_ids, output_filename, EXIST_FILE = False):
     annotation_list = os.listdir(anno_dir_path)
     json_annotation_list = [annotation for annotation in annotation_list if annotation.endswith('.json')]
-
+    print(json_annotation_list)
     json_datas = []
     
     for json_annotation in json_annotation_list:
         with open(os.path.join(anno_dir_path, json_annotation), "rb") as f:
             json_datas.append(json.load(f))
     if EXIST_FILE == False:
-        os.remove(output_filename)
-        print(output_filename, 'is removed')
+        if os.path.isfile(output_filename):
+            os.remove(output_filename)
+            print(output_filename, 'is removed')
 
     with open(output_filename, 'w', encoding='utf-8') as train_csv_file:
+        cnt = 0
         for annotation_data in json_datas:
             for image_data in annotation_data:
                 full_image_name = os.path.join(image_dir_path, image_data['External ID']).replace(' ', '')
-                if os.path.isfile(full_image_name) == False:
-                    print('Warning : ', full_image_name, "doesn't exist")
+                #if os.path.isfile(full_image_name) == False:
+                    # print('Warning : ', full_image_name, "doesn't exist")
                     # DB Error Table 처리해도 될듯
-
-                object_list = image_data['Label']['objects']
-
+                try:
+                    object_list = image_data['Label']['objects']
+                except:
+                    continue
                 if len(object_list) == 0:
                     print(full_image_name, ' is empty')
                     continue
                 bbox_str_list = ' '
                 for object_data in object_list:
+                    cnt+=1
                     bbox = object_data['bbox']
                     class_id = class_ids[object_data['title']]
                     left = int(bbox['left'])
@@ -47,6 +51,6 @@ def json_to_csv(anno_dir_path, image_dir_path, class_ids, output_filename, EXIST
                     bbox_str_list = bbox_str_list + bbox_str + ' '
                 train_csv_file.write(full_image_name + bbox_str_list + '\n')
     print('Finished converting :', output_filename)
-
+    print('object Num:', cnt)
 if __name__ == "__main__":
-    json_to_csv(ANNO_PATH, IMAGE_PATH, CLASS_IDS, os.path.join(ANNO_PATH, 'capstone.csv'))
+    json_to_csv(ANNO_PATH, IMAGE_PATH, CLASS_IDS, os.path.join(ANNO_PATH, 'asdf.csv'), EXIST_FILE=False)
