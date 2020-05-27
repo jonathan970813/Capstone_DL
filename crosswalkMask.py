@@ -5,9 +5,7 @@ from skimage.transform import ProjectiveTransform
 from shapely.geometry import Point, Polygon
 
 CUR_PATH = os.path.abspath('.')
-RCNN_PATH = os.path.join(CUR_PATH, 'Mask_RCNN')
-WEIGHT_PATH = os.path.join(CUR_PATH, os.path.join('pretrained', 'cwRCNN.h5'))
-sys.path.append(RCNN_PATH)
+WEIGHT_PATH = os.path.join(CUR_PATH, os.path.join('model_data', 'cwRCNN.h5'))
 
 import mrcnn.model as modellib
 import mrcnn.config as configlib
@@ -16,7 +14,7 @@ from mrcnn import visualize
 class CrosswalkMask:
     def __init__(self):
         self.config = configlib.Config()
-        self.model = modellib.MaskRCNN(mode='inference', config=self.config, model_dir='./pretrained')
+        self.model = modellib.MaskRCNN(mode='inference', config=self.config, model_dir='./model_data')
         self.model.load_weights(WEIGHT_PATH, by_name=True)
         self.class_names = {0:'bg', 1:'crosswalk'}
         self.result = {}
