@@ -28,7 +28,6 @@ class ServerSocket:
         self.cursor = self.dbConnect()
 
         self.serverOpenThread = threading.Thread(target=self.socketOpen)
-        self.receiveThread = threading.Thread(target=self.receiveImages)
         self.serverOpenThread.start()
 
         self.recentImage = None
@@ -36,16 +35,16 @@ class ServerSocket:
     def socketClose(self):
         self.dbClose()
         self.sock.close()
-        print(u'Server socket [ TCP_IP: ' + self.TCP_IP + ', TCP_PORT: ' + str(self.TCP_PORT) + ' ] is close')
+        logger.info(u'Server socket [ TCP_IP: ' + self.TCP_IP + ', TCP_PORT: ' + str(self.TCP_PORT) + ' ] is close')
 
     def socketOpen(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((self.TCP_IP, self.TCP_PORT))
         self.sock.listen(1)
-        print(u'Server socket [ TCP_IP: ' + self.TCP_IP + ', TCP_PORT: ' + str(self.TCP_PORT) + ' ] is open')
+        logger.info(u'Server Listening at [ TCP_IP: ' + self.TCP_IP + ', TCP_PORT: ' + str(self.TCP_PORT) + ' ] is open')
         self.conn, self.addr = self.sock.accept()
-        print(u'Server socket [ TCP_IP: ' + self.TCP_IP + ', TCP_PORT: ' + str(
-            self.TCP_PORT) + ' ] is connected with client')
+        logger.info(u'Client Connect at [ TCP_IP: ' + self.TCP_IP + ', TCP_PORT: ' + str(self.TCP_PORT) + ' ]')
+        self.receiveThread = threading.Thread(target=self.receiveImages)
         self.receiveThread.start()
 
     def receiveImages(self):
@@ -86,13 +85,15 @@ class ServerSocket:
                 #cv2.waitKey(1)
                 if (cnt == 60 * 10 * 10):
                     cnt = 0
-                    convertThread = threading.Thread(target=self.convertImage(str(self.folder_num), 6000, startTime))
-                    # convertThread.start()
+                    #convertThread = threading.Thread(target=self.convertImage(str(self.folder_num), 6000, startTime))
+                    #convertThread.start()
                     self.folder_num = (self.folder_num + 1) % 2
         except Exception as e:
             print(e)
-            self.convertImage(str(self.folder_num), cnt, startTime)
+            #self.convertImage(str(self.folder_num), cnt, startTime)
             self.socketClose()
+            self.serverOpenThread = threading.Thread(target=self.socketOpen)
+            self.serverOpenThread.start()
 
     def createImageDir(self):
         folder_name = str(self.TCP_PORT) + "_images0"

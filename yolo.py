@@ -11,12 +11,17 @@ from timeit import time
 from timeit import default_timer as timer  ### to calculate FPS
 
 import numpy as np
+import tensorflow as tf
 from keras import backend as K
 from keras.models import load_model
 from PIL import Image, ImageFont, ImageDraw
 
 from yolo3.model import yolo_eval
 from yolo3.utils import letterbox_image
+import logging
+logging.basicConfig(level=logging.WARN, format='%(asctime)s %(message)s')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class YOLO(object):
     def __init__(self):
@@ -27,7 +32,13 @@ class YOLO(object):
         self.iou = 0.5
         self.class_names = self._get_class()
         self.anchors = self._get_anchors()
+
+        #gpu_options = tf.GPUOptions(allow_growth=True)
+        #sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
+        #self.sess = K.set_session(sess)
         self.sess = K.get_session()
+
+
         self.model_image_size = (416, 416) # fixed size or (None, None)
         self.is_fixed_size = self.model_image_size != (None, None)
         self.boxes, self.scores, self.classes = self.generate()
@@ -52,7 +63,7 @@ class YOLO(object):
         assert model_path.endswith('.h5'), 'Keras model must be a .h5 file.'
 
         self.yolo_model = load_model(model_path, compile=False)
-        print('{} model, anchors, and classes loaded.'.format(model_path))
+        logger.info('{} model, anchors, and classes loaded.'.format(model_path))
 
         # Generate colors for drawing bounding boxes.
         hsv_tuples = [(x / len(self.class_names), 1., 1.)
